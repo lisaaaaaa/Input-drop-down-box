@@ -1,0 +1,183 @@
+<!doctype html>
+<!-- Author: lisa -->
+<!-- Timee: 2019/3/21 -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>可输入下拉框</title>
+</head>
+<body onload="myBrowser();getdata();inputValue()">
+
+<div class="container">
+    <div class="search-input">
+        <input id="myinput" type="text" placeholder="请输入">
+    </div>
+    <ul class="search-result" id="data-list" style="display:none;"></ul>
+</div>
+
+</body>
+</html>
+
+<script>
+
+    //浏览器类型判断，兼容性
+    var version = myBrowser();
+    function myBrowser() {
+        var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+        var isOpera = userAgent.indexOf("Opera") > -1; //判断是否Opera浏览器
+        var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1; //判断是否IE浏览器
+        var isEdge = userAgent.indexOf("Edge") > -1 && !isIE; //判断是否IE的Edge浏览器
+        var isIE11 = userAgent.indexOf('Trident') > -1 && userAgent.indexOf("rv:11.0") > -1;  //判断是否IE11
+        var isFF = userAgent.indexOf("Firefox") > -1; //判断是否Firefox浏览器
+        var isSafari = userAgent.indexOf("Safari") > -1
+                && userAgent.indexOf("Chrome") == -1; //判断是否Safari浏览器
+        var isChrome = userAgent.indexOf("Chrome") > -1
+                && userAgent.indexOf("Safari") > -1; //判断Chrome浏览器
+
+        if (isIE) {
+            var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+            reIE.test(userAgent);
+            var fIEVersion = parseFloat(RegExp["$1"]);
+            if (fIEVersion == 7) {
+                return "IE7";
+            } else if (fIEVersion == 8) {
+                return "IE8";
+            } else if (fIEVersion == 9) {
+                return "IE9";
+            } else if (fIEVersion == 10) {
+                return "IE10";
+            }  else {
+                return "IE0";
+            }//IE版本过低
+            return "IE";
+        }
+        if (isOpera) {
+            return "Opera";
+        }
+        if (isEdge) {
+            return "Edge";
+        }
+        if (isIE11) {
+            return "IE11";
+        }
+        if (isFF) {
+            return "FF";
+        }
+        if (isSafari) {
+            return "Safari";
+        }
+        if (isChrome) {
+            return "Chrome";
+        }
+    }
+
+    //初始化数据
+    var input = document.getElementById('myinput');
+    var list = document.getElementById('data-list');
+    var li_list = list.getElementsByTagName("li");
+    var data = ['西瓜','西红柿','芒果','苹果','香蕉']
+
+    //监听输入框值的变化
+    input.addEventListener("keyup", function(e){
+        showData(e.target.value)
+    })
+
+    //循坏生成li标签
+    function getdata(){
+        for(var i=0;i<data.length;i++){
+            var x = document.getElementById('data-list');
+            var li = document.createElement('li')
+            var v = document.createTextNode(data[i]);
+            li.appendChild(v)
+            x.appendChild(li)
+//            list.innerHTML+= "<li>" + data[i] + "<\/li>"
+        }
+    };
+
+    //输入触发，匹配数据
+    function showData(value){
+//        var value = event.target.value;
+//        var value = e.value;
+        list.innerHTML = '';
+        data.forEach(function (item) {
+            if (item.indexOf(value) != -1) {
+                var p = document.createElement('li');
+                for(var i=0; i<item.length; i++){
+                    var span = document.createElement('span')
+                    if(value.indexOf(item.charAt(i)) != -1){
+                        span.setAttribute('style','color:red')
+                    }
+                    var text_o = document.createTextNode(item.charAt(i));
+                    span.appendChild(text_o);
+                    p.appendChild(span);
+                    list.appendChild(p);
+                }
+            }
+        })
+        inputValue();
+    };
+
+    //获取值
+    function inputValue(){
+//        console.log(li_list[0])
+        for (var i=0; i<li_list.length; i++){
+            li_list[i].onclick = function(){
+                input.value = this.innerText;
+            }
+//            li_list[i].addEventListener('click',function(e){
+//                var text = root(e)
+////                input.value = (e.explicitOriginalTarget) ? e.explicitOriginalTarget.innerText : e.path[0].innerText
+//                input.value = text.innerText
+//            })
+
+        }
+    }
+
+    //显示数据框判断
+    document.onclick = function(e){
+        var val = root(e)
+//        var id = (e.explicitOriginalTarget) ? e.explicitOriginalTarget.id : events.id;
+        if(val.id == "myinput"){
+            list.style.display = '';
+        }else{
+            list.style.display = 'none';
+        }
+    };
+
+    //浏览器相应不同
+    function root(x){
+        var event = '';
+        if(version == 'Chrome'){
+            event = x.path[0]
+        }else if(version == 'FF'){
+            event = x.explicitOriginalTarget
+        }else if(version.indexOf('IE') != -1 ){
+            event = x.target
+        }
+        return event;
+    }
+
+</script>
+
+<style type="text/css" >
+
+        .search-result {
+            border: 1px solid;
+            width: 170px;
+            margin-top: 1px;
+        }
+
+        .search-result :hover{
+            background-color:lightpink;
+            cursor: pointer;
+        }
+
+</style>
+
+
+<!--扩展2：-->
+<!--目标：减少后端流量负担，降低前台用户体验-->
+<!--想法：考虑缓冲加载，大量数据可以不要一次性获取完然后显示，因为用户输入匹配到的不一定-->
+<!--就是用户目前正真需要的，用户还可以继续输入，或者修改搜索，就和输入法一样。可以先加载-->
+<!--一定数量直接显示，如果隔一定时间用户没有选择输入或者用户开始向下选择了，再获取一些数-->
+<!--据，以此来执行此次搜索。这样可避免一直耗费服务器，并且兼顾效率问题。-->
